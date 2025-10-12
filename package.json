@@ -12,7 +12,7 @@
     "i18n:src": "rimraf ./translations/messages && babel src > tmp.js && rimraf tmp.js && ./scripts/build-i18n-source.js ./translations/messages/ ./translations/",
     "lint": "eslint . --fix --ext .js,.jsx",
     "start": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server",
-    "test": "npm run unit && NODE_ENV=production npm run build",
+    "test": "NODE_OPTIONS=--openssl-legacy-provider npm run unit && NODE_ENV=production npm run build",
     "unit": "jest --reporters=default",
     "watch": "NODE_OPTIONS=--openssl-legacy-provider webpack --progress --colors --watch"
   },
