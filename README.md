@@ -1,4 +1,4 @@
-# PenguinMod/PenguinMod-Paint
+# ArkIDE/ArkIDE-Paint
 
 Modified version of scratch-paint from TurboWarp for use in PenguinMod.
 Uses @turbowarp/paper as it includes some nice fixes.
