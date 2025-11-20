@@ -10,7 +10,7 @@ $text-primary: var(--paint-text-primary, #575e75);
 
 $motion-primary: hsl(264 100% 50%);
 $motion-tertiary: #5100a3;
-$motion-transparent: hsla(194, 100%, 50%, 0.35);
+$motion-transparent: hsla(250, 100%, 50%, 0.35);
 
 $red-primary: #FF661A;
 $red-tertiary: #E64D00;
