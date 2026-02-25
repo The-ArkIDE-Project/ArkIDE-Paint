@@ -5,7 +5,7 @@ import { clearSelection } from '../selection';
 import { getSquareDimensions } from '../math';
 import BoundingBoxTool from '../selection-tools/bounding-box-tool';
 import NudgeTool from '../selection-tools/nudge-tool';
-import { selectablePaths } from '../selectable-shapes';
+import { getAllShapes, isFontAwesomeShape } from '../selectable-shapes';
 
 /**
  * Tool for drawing sussys.
@@ -100,8 +100,9 @@ class SussyTool extends paper.Tool {
         if (this.sussy) this.sussy.remove();
 
         const rawBounds = new paper.Rectangle(event.downPoint, event.point);
-        const pathData = selectablePaths[this.shape];
-        this.sussy = new paper.CompoundPath(pathData);
+        const allShapes = getAllShapes();
+        const shapeObj = allShapes.find(s => s.id === this.shape) || allShapes[0];
+        this.sussy = new paper.CompoundPath(shapeObj.path);
 
         const shapeBounds = this.sussy.bounds.clone();
         const shapeRatio = shapeBounds.width / shapeBounds.height;
@@ -132,7 +133,14 @@ class SussyTool extends paper.Tool {
         if (event.modifiers.alt) this.sussy.position = event.downPoint;
         else this.sussy.position = this.sussy.bounds.center;
 
-        styleShape(this.sussy, this.colorState);
+        if (isFontAwesomeShape(shapeObj)) {
+            // FA icons use fill only — stroke looks wrong on them
+            this.sussy.fillColor = this.colorState.fillColor || '#000000';
+            this.sussy.strokeColor = null;
+            this.sussy.strokeWidth = 0;
+        } else {
+            styleShape(this.sussy, this.colorState);
+        }
     }
     handleMouseUp(event) {
         if (event.event.button > 0 || !this.active) return; // only first mouse button
