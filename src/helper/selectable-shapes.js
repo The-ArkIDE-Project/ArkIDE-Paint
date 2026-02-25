@@ -7,6 +7,7 @@ const categories = {
   "objects": "Objects",
   "speech": "Speech",
   "blocks": "Blocks",
+  "fontawesome": "Font Awesome",
   "custom": "Custom", // Used when an object doesn't define a category, mutated into object's data
 };
 
@@ -332,6 +333,49 @@ const selectableShapes = [
   }
 ];
 
+// ─── Font Awesome dynamic icon registry ──────────────────────────────────────
+// Icons added by the user at runtime are stored here so they persist for the
+// lifetime of the page and show up in the "Font Awesome" category.
+let _faUserIcons = [];
+
+/**
+ * Add a Font Awesome icon to the shape list at runtime.
+ * @param {string} id       - Unique id, e.g. "fa-star"
+ * @param {string} name     - Display name, e.g. "Star"
+ * @param {string} path     - SVG path d-attribute string
+ * @param {string} viewBox  - Original FA viewBox, e.g. "0 0 576 512"
+ */
+const addFontAwesomeShape = (id, name, path, viewBox) => {
+  // Avoid duplicates
+  if (_faUserIcons.find(s => s.id === id)) return;
+  _faUserIcons.push({
+    id,
+    name,
+    category: "fontawesome",
+    strokeWidth: 0,       // FA icons are filled, not stroked
+    path,
+    viewBox,              // stored for correct SVG rendering
+    isFontAwesome: true,
+  });
+};
+
+/**
+ * Remove a previously-added Font Awesome icon by id.
+ */
+const removeFontAwesomeShape = (id) => {
+  _faUserIcons = _faUserIcons.filter(s => s.id !== id);
+  // Clear any cached SVG so it regenerates cleanly
+};
+
+/**
+ * Returns the full combined shape list (built-ins + user FA icons).
+ * Call this instead of importing selectableShapes directly when you need
+ * the live list.
+ */
+const getAllShapes = () => [...selectableShapes, ..._faUserIcons];
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const selectablePaths = Object.fromEntries(
   selectableShapes.map((shape) => [shape.id, shape.path])
 );
@@ -341,6 +385,16 @@ const generateShapeSVG = (shapeObj) => {
 
   const strokeColor = "#575e75";
   const strokeWidth = shapeObj.strokeWidth;
+
+  // Font Awesome icons use a fill-only approach with their own viewBox
+  if (shapeObj.isFontAwesome) {
+    const vb = shapeObj.viewBox || "0 0 512 512";
+    shapeObj._cachedSVG =
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">` +
+      `<path d="${shapeObj.path}" fill="${strokeColor}"/></svg>`;
+    return shapeObj._cachedSVG;
+  }
+
   const path = new paper.Path(shapeObj.path);
   const bounds = path.getBounds();
   const viewbox = [
@@ -362,4 +416,7 @@ export {
     categories,
     generateShapeSVG,
     categorizeShapes,
+    getAllShapes,
+    addFontAwesomeShape,
+    removeFontAwesomeShape,
 };
