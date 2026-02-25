@@ -8,7 +8,7 @@ const categories = {
   "speech": "Speech",
   "blocks": "Blocks",
   "fontawesome": "Font Awesome",
-  "custom": "Custom", // Used when an object doesn't define a category, mutated into object's data
+  "custom": "Custom",
 };
 
 const categorizeShapes = (shapes) => {
@@ -25,16 +25,6 @@ const categorizeShapes = (shapes) => {
   }
   return categorized;
 };
-
-/*
-  TEMPLATE:
-    {
-      id: "item",
-      name: "item",
-      strokeWidth: x,
-      path: "",
-    }
-*/
 
 const selectableShapes = [
   {
@@ -333,81 +323,79 @@ const selectableShapes = [
   }
 ];
 
-// ─── Font Awesome dynamic icon registry ──────────────────────────────────────
-// Icons added by the user at runtime are stored here so they persist for the
-// lifetime of the page and show up in the "Font Awesome" category.
+// ─── Font Awesome icon registry ───────────────────────────────────────────────
+// Runtime-added icons. Stored as module-level state so they survive re-renders.
 let _faUserIcons = [];
 
 /**
- * Add a Font Awesome icon to the shape list at runtime.
- * @param {string} id       - Unique id, e.g. "fa-star"
- * @param {string} name     - Display name, e.g. "Star"
- * @param {string} path     - SVG path d-attribute string
- * @param {string} viewBox  - Original FA viewBox, e.g. "0 0 576 512"
+ * Add a Font Awesome icon. Safe to call multiple times with the same id.
+ * @param {string} id       - e.g. "fa-star"
+ * @param {string} name     - Display name
+ * @param {string} path     - SVG <path d="..."> string
+ * @param {string} viewBox  - e.g. "0 0 512 512"
  */
 const addFontAwesomeShape = (id, name, path, viewBox) => {
-  // Avoid duplicates
-  if (_faUserIcons.find(s => s.id === id)) return;
-  _faUserIcons.push({
-    id,
-    name,
-    category: "fontawesome",
-    strokeWidth: 0,       // FA icons are filled, not stroked
-    path,
-    viewBox,              // stored for correct SVG rendering
-    isFontAwesome: true,
-  });
+    if (_faUserIcons.find(s => s.id === id)) return;
+    _faUserIcons.push({
+        id,
+        name,
+        category: 'fontawesome',
+        // strokeWidth 0 = use fill, not stroke, when drawing on canvas
+        strokeWidth: 0,
+        path,
+        viewBox: viewBox || '0 0 512 512',
+        isFontAwesome: true,
+    });
 };
 
-/**
- * Remove a previously-added Font Awesome icon by id.
- */
+/** Remove a previously-added FA icon. */
 const removeFontAwesomeShape = (id) => {
-  _faUserIcons = _faUserIcons.filter(s => s.id !== id);
-  // Clear any cached SVG so it regenerates cleanly
+    _faUserIcons = _faUserIcons.filter(s => s.id !== id);
+    // bust SVG cache
+    const idx = _faUserIcons.findIndex(s => s.id === id);
+    if (idx !== -1) delete _faUserIcons[idx]._cachedSVG;
 };
 
-/**
- * Returns the full combined shape list (built-ins + user FA icons).
- * Call this instead of importing selectableShapes directly when you need
- * the live list.
- */
+/** Returns built-in shapes + any user-added FA icons. */
 const getAllShapes = () => [...selectableShapes, ..._faUserIcons];
+
+/** Returns true if the given shape object is a FA icon. */
+const isFontAwesomeShape = (shapeObj) => !!(shapeObj && shapeObj.isFontAwesome);
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 const selectablePaths = Object.fromEntries(
-  selectableShapes.map((shape) => [shape.id, shape.path])
+    selectableShapes.map((shape) => [shape.id, shape.path])
 );
 
 const generateShapeSVG = (shapeObj) => {
-  if (shapeObj._cachedSVG) return shapeObj._cachedSVG;
+    if (shapeObj._cachedSVG) return shapeObj._cachedSVG;
 
-  const strokeColor = "#575e75";
-  const strokeWidth = shapeObj.strokeWidth;
+    const strokeColor = '#575e75';
 
-  // Font Awesome icons use a fill-only approach with their own viewBox
-  if (shapeObj.isFontAwesome) {
-    const vb = shapeObj.viewBox || "0 0 512 512";
+    if (shapeObj.isFontAwesome) {
+        const vb = shapeObj.viewBox || '0 0 512 512';
+        shapeObj._cachedSVG =
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">` +
+            `<path d="${shapeObj.path}" fill="${strokeColor}"/></svg>`;
+        return shapeObj._cachedSVG;
+    }
+
+    const strokeWidth = shapeObj.strokeWidth;
+    const path = new paper.Path(shapeObj.path);
+    const bounds = path.getBounds();
+    const viewbox = [
+        shapeObj.id === 'person' ? '-0.5' : bounds.x - strokeWidth,
+        bounds.y - strokeWidth,
+        bounds.width + (strokeWidth * 2),
+        bounds.height + (strokeWidth * 2),
+    ].join(' ');
+    path.remove();
+
     shapeObj._cachedSVG =
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">` +
-      `<path d="${shapeObj.path}" fill="${strokeColor}"/></svg>`;
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewbox}">` +
+        `<path d="${shapeObj.path}" stroke-width="${strokeWidth}" stroke="${strokeColor}" fill="none"/></svg>`;
     return shapeObj._cachedSVG;
-  }
-
-  const path = new paper.Path(shapeObj.path);
-  const bounds = path.getBounds();
-  const viewbox = [
-    shapeObj.id === "person" ? "-0.5" : bounds.x - strokeWidth,
-    bounds.y - strokeWidth,
-    bounds.width + (strokeWidth * 2),
-    bounds.height + (strokeWidth * 2)
-  ].join(" ");
-  path.remove();
-
-  shapeObj._cachedSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewbox}">`
-    + `<path d="${shapeObj.path}" stroke-width="${strokeWidth}" stroke="${strokeColor}" fill="none"/></svg>`;
-  return shapeObj._cachedSVG;
 };
 
 export {
@@ -419,4 +407,5 @@ export {
     getAllShapes,
     addFontAwesomeShape,
     removeFontAwesomeShape,
+    isFontAwesomeShape,
 };
