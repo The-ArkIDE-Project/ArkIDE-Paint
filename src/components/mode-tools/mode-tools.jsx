@@ -182,9 +182,11 @@ class FontAwesomeSearchPanel extends React.Component {
                     type="text"
                     value={query}
                     onChange={this._handleQueryChange}
+                    onInput={this._handleQueryChange}
                     placeholder={loading ? 'Loading 1600+ icons…' : 'Search icons…'}
                     disabled={loading}
                     onMouseDown={e => e.stopPropagation()}
+                    onKeyDown={e => e.stopPropagation()}
                     style={{ width: '100%', boxSizing: 'border-box', padding: '5px 8px', marginBottom: '8px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', outline: 'none', color: '#575e75' }}
                 />
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxHeight: '180px', overflowY: 'auto' }}>
