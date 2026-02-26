@@ -112,7 +112,8 @@ const searchFACache = (query, data, limit = 40) => {
         const label = (iconData.label || iconName).toLowerCase();
         const terms = (iconData.search && iconData.search.terms ? iconData.search.terms : []).join(' ').toLowerCase();
 
-        if (!q || label.includes(q) || iconName.includes(q) || terms.includes(q)) {
+        const wordMatch = (str) => new RegExp(`\\b${q}\\b`).test(str);
+        if (!q || label === q || iconName === q || wordMatch(label) || wordMatch(iconName) || wordMatch(terms)) {
             results.push({
                 id: `fa-${iconName}`,
                 name: iconData.label || iconName,
