@@ -129,14 +129,22 @@ class FontAwesomeSearchPanel extends React.Component {
     }
     componentDidMount () {
         fetchFAIcons().then(data => {
+            console.log('FA icons loaded:', data ? Object.keys(data).length : 'FAILED', data);
             this.setState({ loading: false, results: searchFACache('', data, 40) });
         });
     }
     _handleQueryChange (e) {
         const query = e.target.value;
-        this.setState({ query });
         if (_faIconCache) {
-            this.setState({ results: searchFACache(query, _faIconCache, 40) });
+            this.setState({ query, results: searchFACache(query, _faIconCache, 40) });
+        } else {
+            this.setState({ query });
+            // cache not ready yet - kick off fetch and update when done
+            fetchFAIcons().then(data => {
+                if (data) {
+                    this.setState(s => ({ results: searchFACache(s.query, data, 40) }));
+                }
+            });
         }
     }
     _toggle (icon) {
