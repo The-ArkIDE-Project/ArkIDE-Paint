@@ -129,6 +129,7 @@ class FontAwesomeSearchPanel extends React.Component {
             addedIds: new Set(sussyToolShapes().filter(s => s.isFontAwesome).map(s => s.id)),
         };
         this._handleQueryChange = this._handleQueryChange.bind(this);
+        this._handleSearch = this._handleSearch.bind(this);
     }
     componentDidMount () {
         fetchFAIcons().then(data => {
@@ -147,6 +148,15 @@ class FontAwesomeSearchPanel extends React.Component {
                 if (data) {
                     this.setState(s => ({ results: searchFACache(s.query, data, 40) }));
                 }
+            });
+        }
+    }
+    _handleSearch () {
+        if (_faIconCache) {
+            this.setState({ results: searchFACache(this.state.query, _faIconCache, 40) });
+        } else {
+            fetchFAIcons().then(data => {
+                if (data) this.setState({ results: searchFACache(this.state.query, data, 40) });
             });
         }
     }
@@ -178,17 +188,33 @@ class FontAwesomeSearchPanel extends React.Component {
                 <p style={{ margin: '0 0 6px 0', fontSize: '11px', fontWeight: 'bold', color: '#575e75', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Font Awesome Icons
                 </p>
-                <input
-                    type="text"
-                    value={query}
-                    onChange={this._handleQueryChange}
-                    onInput={this._handleQueryChange}
-                    placeholder={loading ? 'Loading 1600+ icons…' : 'Search icons…'}
-                    disabled={loading}
-                    onMouseDown={e => e.stopPropagation()}
-                    onKeyDown={e => e.stopPropagation()}
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '5px 8px', marginBottom: '8px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', outline: 'none', color: '#575e75' }}
-                />
+                    <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={this._handleQueryChange}
+                            onInput={this._handleQueryChange}
+                            placeholder={loading ? 'Loading icons…' : 'Search icons…'}
+                            disabled={loading}
+                            onMouseDown={e => e.stopPropagation()}
+                            onClick={e => e.stopPropagation()}
+                            onKeyDown={e => {
+                                e.stopPropagation();
+                                if (e.key === 'Enter') this._handleSearch();
+                            }}
+                            onKeyUp={e => e.stopPropagation()}
+                            onKeyPress={e => e.stopPropagation()}
+                            style={{ flex: 1, boxSizing: 'border-box', padding: '5px 8px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', outline: 'none', color: '#575e75' }}
+                        />
+                        <button
+                            onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
+                            onClick={e => { e.stopPropagation(); this._handleSearch(); }}
+                            disabled={loading}
+                            style={{ padding: '5px 10px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', background: '#4c97ff', color: 'white', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                        >
+                            Search
+                        </button>
+                    </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxHeight: '180px', overflowY: 'auto' }}>
                     {loading && <span style={{ fontSize: '11px', color: '#aaa', padding: '4px' }}>Loading…</span>}
                     {!loading && results.length === 0 && <span style={{ fontSize: '11px', color: '#aaa', padding: '4px' }}>No results</span>}
