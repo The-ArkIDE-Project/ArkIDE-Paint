@@ -326,7 +326,7 @@ class FontAwesomeSearchPanel extends React.Component {
                                         <span style={{ fontSize: '8px', color: fill, marginTop: '2px', textAlign: 'center', lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {icon.name}
                                         </span>
-                                        {isAdded && <span style={{ fontSize: '8px', color: '#4c97ff', fontWeight: 'bold' }}>✓</span>}
+                                        {isAdded && <span style={{ fontSize: '8px', color: '#794cff', fontWeight: 'bold' }}>✓</span>}
                                     </div>
                                 );
                             })}
