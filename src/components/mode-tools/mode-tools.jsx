@@ -297,7 +297,7 @@ class FontAwesomeSearchPanel extends React.Component {
                                 onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
                                 onClick={e => { e.stopPropagation(); this._handleSearch(); }}
                                 disabled={loading}
-                                style={{ padding: '5px 10px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', background: '#4c97ff', color: 'white', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                style={{ padding: '5px 10px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', background: '#794cff', color: 'white', cursor: 'pointer', whiteSpace: 'nowrap' }}
                             >
                                 Search
                             </button>
