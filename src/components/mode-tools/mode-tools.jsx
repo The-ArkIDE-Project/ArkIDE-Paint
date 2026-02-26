@@ -155,16 +155,57 @@ class FontAwesomeSearchPanel extends React.Component {
             query: '',
             results: [],
             loading: true,
+            collapsed: true,
             addedIds: new Set(sussyToolShapes().filter(s => s.isFontAwesome).map(s => s.id)),
         };
         this._handleQueryChange = this._handleQueryChange.bind(this);
         this._handleSearch = this._handleSearch.bind(this);
+        this._loadPersistedState = this._loadPersistedState.bind(this);
+        this._persistIcons = this._persistIcons.bind(this);
     }
     componentDidMount () {
         fetchFAIcons().then(data => {
-            console.log('FA icons loaded:', data ? Object.keys(data).length : 'FAILED', data);
             this.setState({ loading: false, results: searchFACache('', data, 40) });
+            this._loadPersistedState(data);
         });
+    }
+
+    async _loadPersistedState (faData) {
+        try {
+            // restore collapsed state
+            const collapsedResult = await window.storage.get('fa-panel-collapsed');
+            if (collapsedResult) {
+                this.setState({ collapsed: JSON.parse(collapsedResult.value) });
+            }
+        } catch (e) { /* key doesn't exist yet, use default */ }
+
+        try {
+            // restore saved icons
+            const iconsResult = await window.storage.get('fa-saved-icons');
+            if (iconsResult && faData) {
+                const savedIcons = JSON.parse(iconsResult.value);
+                const addedIds = new Set();
+                for (const icon of savedIcons) {
+                    addFontAwesomeShape(icon.id, icon.name, icon.path, icon.viewBox);
+                    addedIds.add(icon.id);
+                }
+                this.setState({ addedIds });
+                if (this.props.onShapesChanged) this.props.onShapesChanged();
+            }
+        } catch (e) { /* no saved icons yet */ }
+    }
+
+    async _persistIcons (addedIds) {
+        try {
+            // save the full icon data for each added id so we can restore it
+            const allShapes = sussyToolShapes();
+            const toSave = allShapes
+                .filter(s => s.isFontAwesome && addedIds.has(s.id))
+                .map(s => ({ id: s.id, name: s.name, path: s.path, viewBox: s.viewBox }));
+            await window.storage.set('fa-saved-icons', JSON.stringify(toSave));
+        } catch (e) {
+            console.error('Failed to save FA icons:', e);
+        }
     }
     _handleQueryChange (e) {
         const query = e.target.value;
@@ -199,12 +240,11 @@ class FontAwesomeSearchPanel extends React.Component {
         } else {
             addFontAwesomeShape(icon.id, icon.name, icon.path, icon.viewBox);
             next.add(icon.id);
-            // immediately select it — single click UX
             if (this.props.onAddIcon) this.props.onAddIcon(icon.id);
         }
         this.setState({ addedIds: next });
-        // force the parent shape list to re-render so the new icon appears immediately
         if (this.props.onShapesChanged) this.props.onShapesChanged();
+        this._persistIcons(next);
     }
     render () {
         const { query, results, loading, addedIds } = this.state;
@@ -218,7 +258,14 @@ class FontAwesomeSearchPanel extends React.Component {
                 <div
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
                     onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
-                    onClick={e => { e.stopPropagation(); this.setState(s => ({ collapsed: !s.collapsed })); }}
+                    onClick={e => {
+                        e.stopPropagation();
+                        this.setState(s => {
+                            const collapsed = !s.collapsed;
+                            window.storage.set('fa-panel-collapsed', JSON.stringify(collapsed)).catch(() => {});
+                            return { collapsed };
+                        });
+                    }}
                 >
                     <p style={{ margin: 0, fontSize: '11px', fontWeight: 'bold', color: '#575e75', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Font Awesome Icons
