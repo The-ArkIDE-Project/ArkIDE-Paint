@@ -92,11 +92,9 @@ const fetchFAIcons = () => {
 const searchFACache = (query, data, limit = 40) => {
     if (!data) return [];
     const q = query.toLowerCase().trim();
-    const results = [];
+    const scored = [];
 
     for (const [iconName, iconData] of Object.entries(data)) {
-        if (results.length >= limit) break;
-
         const svgs = iconData.svgs || {};
         const family = svgs.classic || svgs.sharp || Object.values(svgs)[0];
         if (!family) continue;
@@ -106,41 +104,46 @@ const searchFACache = (query, data, limit = 40) => {
         const freeFamilies = iconData.familyStylesByLicense && iconData.familyStylesByLicense.free;
         if (!freeFamilies || freeFamilies.length === 0) continue;
 
-        // Skip numeric/symbol icon names on empty query — show only letter-named icons by default
         if (!q && /^[^a-z]/.test(iconName)) continue;
 
         const label = (iconData.label || iconName).toLowerCase();
         const terms = iconData.search && iconData.search.terms ? iconData.search.terms : [];
-        const termsStr = terms.join(' ').toLowerCase();
 
         if (!q) {
-            // empty query: just show anything with a real alphabetic name
-            results.push({
-                id: `fa-${iconName}`,
-                name: iconData.label || iconName,
-                path: svgData.path,
-                viewBox: `0 0 ${svgData.width || 512} ${svgData.height || 512}`,
-            });
+            scored.push({ iconName, iconData, svgData, score: 0 });
             continue;
         }
 
-        // exact matches first priority — check icon name and label
-        const exactMatch = iconName === q || label === q;
-        // word boundary match on label, icon name, or any individual term
         const wordMatch = (str) => new RegExp(`\\b${q}\\b`).test(str);
         const termMatch = terms.some(t => wordMatch(t.toLowerCase()));
-        const labelMatch = wordMatch(label) || wordMatch(iconName);
+        const labelWordMatch = wordMatch(label) || wordMatch(iconName);
 
-        if (exactMatch || labelMatch || termMatch) {
-            results.push({
-                id: `fa-${iconName}`,
-                name: iconData.label || iconName,
-                path: svgData.path,
-                viewBox: `0 0 ${svgData.width || 512} ${svgData.height || 512}`,
-            });
+        let score = null;
+
+        if (iconName === q)               score = 0; // exact key match — highest
+        else if (label === q)             score = 1; // exact label match
+        else if (iconName.startsWith(q))  score = 2; // key starts with query
+        else if (label.startsWith(q))     score = 3; // label starts with query
+        else if (labelWordMatch)          score = 4; // word match in label/name
+        else if (termMatch)               score = 5; // word match in search terms
+        // substring fallback
+        else if (label.includes(q) || iconName.includes(q)) score = 6;
+        else if (terms.some(t => t.toLowerCase().includes(q))) score = 7;
+
+        if (score !== null) {
+            scored.push({ iconName, iconData, svgData, score });
         }
     }
-    return results;
+
+    // sort by score ascending (0 = best), then alphabetically within same score
+    scored.sort((a, b) => a.score - b.score || a.iconName.localeCompare(b.iconName));
+
+    return scored.slice(0, limit).map(({ iconName, iconData, svgData }) => ({
+        id: `fa-${iconName}`,
+        name: iconData.label || iconName,
+        path: svgData.path,
+        viewBox: `0 0 ${svgData.width || 512} ${svgData.height || 512}`,
+    }));
 };
 
 // ─── Font Awesome Search Panel Component ─────────────────────────────────────
