@@ -96,11 +96,18 @@ const searchFACache = (query, data, limit = 40) => {
     for (const [iconName, iconData] of Object.entries(data)) {
         if (results.length >= limit) break;
 
-        // v7 structure: svgs is an object keyed by style e.g. { solid: { path, width, height }, regular: {...} }
+        // v7 structure: svgs -> family (classic/sharp/etc) -> style (solid/regular/brands) -> { path, width, height }
         const svgs = iconData.svgs || {};
-        // prefer solid, then regular, then brands, then whatever is first
-        const svgData = svgs.solid || svgs.regular || svgs.brands || Object.values(svgs)[0];
+        // try classic first, then any other family
+        const family = svgs.classic || svgs.sharp || Object.values(svgs)[0];
+        if (!family) continue;
+        // prefer solid, then regular, then brands, then first available
+        const svgData = family.solid || family.regular || family.brands || Object.values(family)[0];
         if (!svgData || !svgData.path) continue;
+
+        // only include icons that have a free license
+        const freeFamilies = iconData.familyStylesByLicense && iconData.familyStylesByLicense.free;
+        if (!freeFamilies || freeFamilies.length === 0) continue;
 
         const label = (iconData.label || iconName).toLowerCase();
         const terms = (iconData.search && iconData.search.terms ? iconData.search.terms : []).join(' ').toLowerCase();
