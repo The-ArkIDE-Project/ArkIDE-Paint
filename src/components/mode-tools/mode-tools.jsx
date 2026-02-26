@@ -93,27 +93,45 @@ const searchFACache = (query, data, limit = 40) => {
     if (!data) return [];
     const q = query.toLowerCase().trim();
     const results = [];
+
     for (const [iconName, iconData] of Object.entries(data)) {
         if (results.length >= limit) break;
 
-        // v7 structure: svgs -> family (classic/sharp/etc) -> style (solid/regular/brands) -> { path, width, height }
         const svgs = iconData.svgs || {};
-        // try classic first, then any other family
         const family = svgs.classic || svgs.sharp || Object.values(svgs)[0];
         if (!family) continue;
-        // prefer solid, then regular, then brands, then first available
         const svgData = family.solid || family.regular || family.brands || Object.values(family)[0];
         if (!svgData || !svgData.path) continue;
 
-        // only include icons that have a free license
         const freeFamilies = iconData.familyStylesByLicense && iconData.familyStylesByLicense.free;
         if (!freeFamilies || freeFamilies.length === 0) continue;
 
-        const label = (iconData.label || iconName).toLowerCase();
-        const terms = (iconData.search && iconData.search.terms ? iconData.search.terms : []).join(' ').toLowerCase();
+        // Skip numeric/symbol icon names on empty query — show only letter-named icons by default
+        if (!q && /^[^a-z]/.test(iconName)) continue;
 
+        const label = (iconData.label || iconName).toLowerCase();
+        const terms = iconData.search && iconData.search.terms ? iconData.search.terms : [];
+        const termsStr = terms.join(' ').toLowerCase();
+
+        if (!q) {
+            // empty query: just show anything with a real alphabetic name
+            results.push({
+                id: `fa-${iconName}`,
+                name: iconData.label || iconName,
+                path: svgData.path,
+                viewBox: `0 0 ${svgData.width || 512} ${svgData.height || 512}`,
+            });
+            continue;
+        }
+
+        // exact matches first priority — check icon name and label
+        const exactMatch = iconName === q || label === q;
+        // word boundary match on label, icon name, or any individual term
         const wordMatch = (str) => new RegExp(`\\b${q}\\b`).test(str);
-        if (!q || label === q || iconName === q || wordMatch(label) || wordMatch(iconName) || wordMatch(terms)) {
+        const termMatch = terms.some(t => wordMatch(t.toLowerCase()));
+        const labelMatch = wordMatch(label) || wordMatch(iconName);
+
+        if (exactMatch || labelMatch || termMatch) {
             results.push({
                 id: `fa-${iconName}`,
                 name: iconData.label || iconName,
