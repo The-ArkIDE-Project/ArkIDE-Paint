@@ -172,18 +172,16 @@ class FontAwesomeSearchPanel extends React.Component {
 
     async _loadPersistedState (faData) {
         try {
-            // restore collapsed state
-            const collapsedResult = await window.storage.get('fa-panel-collapsed');
-            if (collapsedResult) {
-                this.setState({ collapsed: JSON.parse(collapsedResult.value) });
+            const collapsed = localStorage.getItem('fa-panel-collapsed');
+            if (collapsed !== null) {
+                this.setState({ collapsed: JSON.parse(collapsed) });
             }
-        } catch (e) { /* key doesn't exist yet, use default */ }
+        } catch (e) { /* ignore */ }
 
         try {
-            // restore saved icons
-            const iconsResult = await window.storage.get('fa-saved-icons');
-            if (iconsResult && faData) {
-                const savedIcons = JSON.parse(iconsResult.value);
+            const saved = localStorage.getItem('fa-saved-icons');
+            if (saved && faData) {
+                const savedIcons = JSON.parse(saved);
                 const addedIds = new Set();
                 for (const icon of savedIcons) {
                     addFontAwesomeShape(icon.id, icon.name, icon.path, icon.viewBox);
@@ -192,7 +190,7 @@ class FontAwesomeSearchPanel extends React.Component {
                 this.setState({ addedIds });
                 if (this.props.onShapesChanged) this.props.onShapesChanged();
             }
-        } catch (e) { /* no saved icons yet */ }
+        } catch (e) { /* ignore */ }
     }
 
     async _persistIcons (addedIds) {
@@ -202,7 +200,7 @@ class FontAwesomeSearchPanel extends React.Component {
             const toSave = allShapes
                 .filter(s => s.isFontAwesome && addedIds.has(s.id))
                 .map(s => ({ id: s.id, name: s.name, path: s.path, viewBox: s.viewBox }));
-            await window.storage.set('fa-saved-icons', JSON.stringify(toSave));
+            localStorage.setItem('fa-saved-icons', JSON.stringify(toSave));
         } catch (e) {
             console.error('Failed to save FA icons:', e);
         }
@@ -262,7 +260,7 @@ class FontAwesomeSearchPanel extends React.Component {
                         e.stopPropagation();
                         this.setState(s => {
                             const collapsed = !s.collapsed;
-                            window.storage.set('fa-panel-collapsed', JSON.stringify(collapsed)).catch(() => {});
+                            try { localStorage.setItem('fa-panel-collapsed', JSON.stringify(collapsed)); } catch (_) {}
                             return { collapsed };
                         });
                     }}
