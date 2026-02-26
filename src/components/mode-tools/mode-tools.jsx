@@ -208,72 +208,87 @@ class FontAwesomeSearchPanel extends React.Component {
     }
     render () {
         const { query, results, loading, addedIds } = this.state;
+        const collapsed = this.state.collapsed;
         return (
             <div
                 style={{ padding: '8px', minWidth: '220px', maxWidth: '280px', borderTop: '1px solid #d9d9d9', marginTop: '4px' }}
                 onMouseDown={e => e.stopPropagation()}
                 onClick={e => e.stopPropagation()}
             >
-                <p style={{ margin: '0 0 6px 0', fontSize: '11px', fontWeight: 'bold', color: '#575e75', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Font Awesome Icons
-                </p>
-                    <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-                        <input
-                            type="text"
-                            value={query}
-                            onChange={this._handleQueryChange}
-                            onInput={this._handleQueryChange}
-                            placeholder={loading ? 'Loading icons…' : 'Search icons…'}
-                            disabled={loading}
-                            onMouseDown={e => e.stopPropagation()}
-                            onClick={e => e.stopPropagation()}
-                            onKeyDown={e => {
-                                e.stopPropagation();
-                                if (e.key === 'Enter') this._handleSearch();
-                            }}
-                            onKeyUp={e => e.stopPropagation()}
-                            onKeyPress={e => e.stopPropagation()}
-                            style={{ flex: 1, boxSizing: 'border-box', padding: '5px 8px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', outline: 'none', color: '#575e75' }}
-                        />
-                        <button
-                            onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
-                            onClick={e => { e.stopPropagation(); this._handleSearch(); }}
-                            disabled={loading}
-                            style={{ padding: '5px 10px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', background: '#4c97ff', color: 'white', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                        >
-                            Search
-                        </button>
-                    </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxHeight: '180px', overflowY: 'auto' }}>
-                    {loading && <span style={{ fontSize: '11px', color: '#aaa', padding: '4px' }}>Loading…</span>}
-                    {!loading && results.length === 0 && <span style={{ fontSize: '11px', color: '#aaa', padding: '4px' }}>No results</span>}
-                    {results.map(icon => {
-                        const isAdded = addedIds.has(icon.id);
-                        const fill = isAdded ? '#4c97ff' : '#575e75';
-                        const svgDataUri = `data:image/svg+xml,${encodeURIComponent(
-                            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox || '0 0 512 512'}">` +
-                            `<path d="${icon.path}" fill="${fill}"/></svg>`
-                        )}`;
-                        return (
-                            <div
-                                key={icon.id}
-                                title={`${icon.name}${isAdded ? ' (click to remove)' : ' (click to add & select)'}`}
-                                onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
-                                onClick={e => { e.stopPropagation(); this._toggle(icon); }}
-                                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '44px', padding: '4px 2px', borderRadius: '4px', cursor: 'pointer', border: `1.5px solid ${isAdded ? '#4c97ff' : 'transparent'}`, background: isAdded ? '#e8f0ff' : 'transparent' }}
-                                onMouseEnter={e => { if (!isAdded) e.currentTarget.style.background = '#f0f0f0'; }}
-                                onMouseLeave={e => { if (!isAdded) e.currentTarget.style.background = isAdded ? '#e8f0ff' : 'transparent'; }}
-                            >
-                                <img src={svgDataUri} alt={icon.name} width={20} height={20} draggable={false} />
-                                <span style={{ fontSize: '8px', color: fill, marginTop: '2px', textAlign: 'center', lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {icon.name}
-                                </span>
-                                {isAdded && <span style={{ fontSize: '8px', color: '#4c97ff', fontWeight: 'bold' }}>✓</span>}
-                            </div>
-                        );
-                    })}
+                <div
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                    onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
+                    onClick={e => { e.stopPropagation(); this.setState(s => ({ collapsed: !s.collapsed })); }}
+                >
+                    <p style={{ margin: 0, fontSize: '11px', fontWeight: 'bold', color: '#575e75', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Font Awesome Icons
+                    </p>
+                    <span style={{ fontSize: '11px', color: '#575e75', marginLeft: '8px' }}>
+                        {collapsed ? '▶' : '▼'}
+                    </span>
                 </div>
-                <p style={{ margin: '6px 0 0 0', fontSize: '9px', color: '#aaa' }}>Click to add · click again to remove</p>
+
+                {!collapsed && (
+                    <div>
+                        <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', marginTop: '6px' }}>
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={this._handleQueryChange}
+                                onInput={this._handleQueryChange}
+                                placeholder={loading ? 'Loading icons…' : 'Search icons…'}
+                                disabled={loading}
+                                onMouseDown={e => e.stopPropagation()}
+                                onClick={e => e.stopPropagation()}
+                                onKeyDown={e => {
+                                    e.stopPropagation();
+                                    if (e.key === 'Enter') this._handleSearch();
+                                }}
+                                onKeyUp={e => e.stopPropagation()}
+                                onKeyPress={e => e.stopPropagation()}
+                                style={{ flex: 1, boxSizing: 'border-box', padding: '5px 8px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', outline: 'none', color: '#575e75' }}
+                            />
+                            <button
+                                onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
+                                onClick={e => { e.stopPropagation(); this._handleSearch(); }}
+                                disabled={loading}
+                                style={{ padding: '5px 10px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', background: '#4c97ff', color: 'white', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                            >
+                                Search
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxHeight: '180px', overflowY: 'auto' }}>
+                            {loading && <span style={{ fontSize: '11px', color: '#aaa', padding: '4px' }}>Loading…</span>}
+                            {!loading && results.length === 0 && <span style={{ fontSize: '11px', color: '#aaa', padding: '4px' }}>No results</span>}
+                            {results.map(icon => {
+                                const isAdded = addedIds.has(icon.id);
+                                const fill = isAdded ? '#794cff' : '#575e75';
+                                const svgDataUri = `data:image/svg+xml,${encodeURIComponent(
+                                    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox || '0 0 512 512'}">` +
+                                    `<path d="${icon.path}" fill="${fill}"/></svg>`
+                                )}`;
+                                return (
+                                    <div
+                                        key={icon.id}
+                                        title={`${icon.name}${isAdded ? ' (click to remove)' : ' (click to add & select)'}`}
+                                        onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
+                                        onClick={e => { e.stopPropagation(); this._toggle(icon); }}
+                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '44px', padding: '4px 2px', borderRadius: '4px', cursor: 'pointer', border: `1.5px solid ${isAdded ? '#4c97ff' : 'transparent'}`, background: isAdded ? '#e8f0ff' : 'transparent' }}
+                                        onMouseEnter={e => { if (!isAdded) e.currentTarget.style.background = '#f0f0f0'; }}
+                                        onMouseLeave={e => { if (!isAdded) e.currentTarget.style.background = isAdded ? '#e8f0ff' : 'transparent'; }}
+                                    >
+                                        <img src={svgDataUri} alt={icon.name} width={20} height={20} draggable={false} />
+                                        <span style={{ fontSize: '8px', color: fill, marginTop: '2px', textAlign: 'center', lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {icon.name}
+                                        </span>
+                                        {isAdded && <span style={{ fontSize: '8px', color: '#4c97ff', fontWeight: 'bold' }}>✓</span>}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <p style={{ margin: '6px 0 0 0', fontSize: '9px', color: '#aaa' }}>Click to add · click again to remove</p>
+                    </div>
+                )}
             </div>
         );
     }
