@@ -77,7 +77,7 @@ import bitRectIcon from '../bit-rect-mode/rectangle.svg';
 import bitOvalOutlinedIcon from '../bit-oval-mode/oval-outlined.svg';
 import bitRectOutlinedIcon from '../bit-rect-mode/rectangle-outlined.svg';
 
-const FA_JSON_URL = 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/metadata/icons.json';
+const FA_JSON_URL = 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/metadata/icon-families.json';
 let _faIconCache = null;
 let _faFetchPromise = null;
 const fetchFAIcons = () => {
@@ -95,14 +95,17 @@ const searchFACache = (query, data, limit = 40) => {
     const results = [];
     for (const [iconName, iconData] of Object.entries(data)) {
         if (results.length >= limit) break;
-        const hasFree = iconData.styles &&
-            (iconData.styles.includes('solid') || iconData.styles.includes('regular') || iconData.styles.includes('brands'));
-        if (!hasFree) continue;
+
+        // v7 structure: svgs is an object keyed by style e.g. { solid: { path, width, height }, regular: {...} }
+        const svgs = iconData.svgs || {};
+        // prefer solid, then regular, then brands, then whatever is first
+        const svgData = svgs.solid || svgs.regular || svgs.brands || Object.values(svgs)[0];
+        if (!svgData || !svgData.path) continue;
+
         const label = (iconData.label || iconName).toLowerCase();
         const terms = (iconData.search && iconData.search.terms ? iconData.search.terms : []).join(' ').toLowerCase();
+
         if (!q || label.includes(q) || iconName.includes(q) || terms.includes(q)) {
-            const svgData = iconData.svg && (iconData.svg.solid || iconData.svg.regular || iconData.svg.brands);
-            if (!svgData || !svgData.path) continue;
             results.push({
                 id: `fa-${iconName}`,
                 name: iconData.label || iconName,
