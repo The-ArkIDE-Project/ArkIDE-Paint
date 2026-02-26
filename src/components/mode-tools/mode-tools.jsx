@@ -669,11 +669,14 @@ const ModeToolsComponent = props => {
                         </InputGroup>
                         <FontAwesomeSearchPanel
                             onAddIcon={(id) => {
-                                changeFunction(id); // select immediately on add
-                                this.setState(s => ({ tick: s.tick + 1 })); // re-render list
+                                changeFunction(id);
+                                this.setState(s => ({ tick: s.tick + 1 }));
                             }}
                             onRemoveIcon={(_id) => {
                                 if (_id === currentlySelectedShape) changeFunction(allShapes[0].id);
+                                this.setState(s => ({ tick: s.tick + 1 }));
+                            }}
+                            onShapesChanged={() => {
                                 this.setState(s => ({ tick: s.tick + 1 }));
                             }}
                         />

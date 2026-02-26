@@ -90,7 +90,7 @@ class SussyTool extends paper.Tool {
         }
     }
     handleMouseDrag(event) {
-        if (event.event.button > 0 || !this.active) return; // only first mouse button
+        if (event.event.button > 0 || !this.active) return;
 
         if (this.isBoundingBoxMode) {
             this.boundingBoxTool.onMouseDrag(event);
@@ -99,22 +99,35 @@ class SussyTool extends paper.Tool {
 
         if (this.sussy) this.sussy.remove();
 
-        const rawBounds = new paper.Rectangle(event.downPoint, event.point);
         const allShapes = getAllShapes();
         const shapeObj = allShapes.find(s => s.id === this.shape) || allShapes[0];
         this.sussy = new paper.CompoundPath(shapeObj.path);
 
-        const shapeBounds = this.sussy.bounds.clone();
-        const shapeRatio = shapeBounds.width / shapeBounds.height;
+        // Normalize the path to a unit square first so bounds assignment
+        // works correctly regardless of the original coordinate space
+        // (built-in shapes use small coords; FA icons use 0 0 512 512 etc.)
+        const currentBounds = this.sussy.bounds;
+        if (currentBounds.width > 0 && currentBounds.height > 0) {
+            this.sussy.scale(
+                1 / currentBounds.width,
+                1 / currentBounds.height,
+                currentBounds.topLeft
+            );
+        }
+
+        const rawBounds = new paper.Rectangle(event.downPoint, event.point);
+        const shapeRatio = currentBounds.width / currentBounds.height;
         let finalBounds = rawBounds;
 
         if (event.modifiers.shift) {
             const { width, height } = rawBounds.size;
             let w0 = width, h0 = height;
 
-            // adjust to keep aspect ratio
-            if (width / height > shapeRatio) w0 = Math.sign(width) * Math.abs(height * shapeRatio);
-            else h0 = Math.sign(height) * Math.abs(width / shapeRatio);
+            if (Math.abs(width) / Math.abs(height) > shapeRatio) {
+                w0 = Math.sign(width) * Math.abs(height * shapeRatio);
+            } else {
+                h0 = Math.sign(height) * Math.abs(width / shapeRatio);
+            }
 
             const opposite = event.downPoint.add(new paper.Point(w0, h0));
             finalBounds = new paper.Rectangle(
@@ -130,11 +143,12 @@ class SussyTool extends paper.Tool {
         }
 
         this.sussy.bounds = finalBounds;
-        if (event.modifiers.alt) this.sussy.position = event.downPoint;
-        else this.sussy.position = this.sussy.bounds.center;
+
+        if (event.modifiers.alt) {
+            this.sussy.position = event.downPoint;
+        }
 
         if (isFontAwesomeShape(shapeObj)) {
-            // FA icons use fill only — stroke looks wrong on them
             this.sussy.fillColor = this.colorState.fillColor || '#000000';
             this.sussy.strokeColor = null;
             this.sussy.strokeWidth = 0;

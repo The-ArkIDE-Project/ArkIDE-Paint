@@ -351,9 +351,6 @@ const addFontAwesomeShape = (id, name, path, viewBox) => {
 /** Remove a previously-added FA icon. */
 const removeFontAwesomeShape = (id) => {
     _faUserIcons = _faUserIcons.filter(s => s.id !== id);
-    // bust SVG cache
-    const idx = _faUserIcons.findIndex(s => s.id === id);
-    if (idx !== -1) delete _faUserIcons[idx]._cachedSVG;
 };
 
 /** Returns built-in shapes + any user-added FA icons. */
