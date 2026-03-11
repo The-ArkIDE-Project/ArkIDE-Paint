@@ -156,6 +156,7 @@ class FontAwesomeSearchPanel extends React.Component {
             results: [],
             loading: true,
             collapsed: true,
+            visibleCount: 60,
             addedIds: new Set(sussyToolShapes().filter(s => s.isFontAwesome).map(s => s.id)),
         };
         this._handleQueryChange = this._handleQueryChange.bind(this);
@@ -208,10 +209,9 @@ class FontAwesomeSearchPanel extends React.Component {
     _handleQueryChange (e) {
         const query = e.target.value;
         if (_faIconCache) {
-            this.setState({ query, results: searchFACache(query, _faIconCache, 2141) });
+            this.setState({ query, results: searchFACache(query, _faIconCache, 2141), visibleCount: 60 });
         } else {
-            this.setState({ query });
-            // cache not ready yet - kick off fetch and update when done
+            this.setState({ query, visibleCount: 60 }); 
             fetchFAIcons().then(data => {
                 if (data) {
                     this.setState(s => ({ results: searchFACache(s.query, data, 2141) }));
@@ -221,10 +221,10 @@ class FontAwesomeSearchPanel extends React.Component {
     }
     _handleSearch () {
         if (_faIconCache) {
-            this.setState({ results: searchFACache(this.state.query, _faIconCache, 2141) });
+            this.setState({ results: searchFACache(this.state.query, _faIconCache, 2141), visibleCount: 60 });  
         } else {
             fetchFAIcons().then(data => {
-                if (data) this.setState({ results: searchFACache(this.state.query, data, 2141) });
+                if (data) this.setState({ results: searchFACache(this.state.query, data, 2141), visibleCount: 60 });  
             });
         }
     }
@@ -247,6 +247,7 @@ class FontAwesomeSearchPanel extends React.Component {
     render () {
         const { query, results, loading, addedIds } = this.state;
         const collapsed = this.state.collapsed;
+        const visibleResults = results.slice(0, visibleCount); 
         return (
             <div
                 style={{ padding: '8px', minWidth: '220px', maxWidth: '280px', borderTop: '1px solid #d9d9d9', marginTop: '4px' }}
@@ -305,7 +306,7 @@ class FontAwesomeSearchPanel extends React.Component {
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxHeight: '180px', overflowY: 'auto' }}>
                             {loading && <span style={{ fontSize: '11px', color: '#aaa', padding: '4px' }}>Loading…</span>}
                             {!loading && results.length === 0 && <span style={{ fontSize: '11px', color: '#aaa', padding: '4px' }}>No results</span>}
-                            {results.map(icon => {
+                            {visibleResults.map(icon => {
                                 const isAdded = addedIds.has(icon.id);
                                 const fill = isAdded ? '#794cff' : '#575e75';
                                 const svgDataUri = `data:image/svg+xml,${encodeURIComponent(
@@ -331,6 +332,15 @@ class FontAwesomeSearchPanel extends React.Component {
                                 );
                             })}
                         </div>
+                        {!loading && results.length > visibleCount && (
+                            <button
+                                onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
+                                onClick={e => { e.stopPropagation(); this.setState(s => ({ visibleCount: s.visibleCount + 60 })); }}
+                                style={{ width: '100%', marginTop: '6px', padding: '5px', border: '1px solid #c8c8c8', borderRadius: '4px', fontSize: '12px', background: '#f0f0f0', color: '#575e75', cursor: 'pointer' }}
+                            >
+                                Load More ({Math.min(visibleCount + 60, results.length) - visibleCount} more, {results.length - visibleCount} remaining)
+                            </button>
+                        )}
                         <p style={{ margin: '6px 0 0 0', fontSize: '9px', color: '#aaa' }}>Click to add · click again to remove. 1600+ Icons avalible!</p>
                     </div>
                 )}
@@ -767,9 +777,6 @@ const ModeToolsComponent = props => {
         const allShapes = sussyToolShapes();
         const selectedShapeObject = allShapes.find(s => s.id === currentlySelectedShape) || allShapes[0];
 
-        // SussyShapeList is defined inline as a stateful class so that
-        // onShapesChanged can trigger a re-render and show newly-added FA icons
-        // immediately without closing the dropdown.
         class SussyShapeList extends React.Component {
             constructor (p) { super(p); this.state = { tick: 0 }; }
             render () {
