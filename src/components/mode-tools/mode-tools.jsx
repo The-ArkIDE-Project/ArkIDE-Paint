@@ -331,7 +331,7 @@ class FontAwesomeSearchPanel extends React.Component {
                                 );
                             })}
                         </div>
-                        <p style={{ margin: '6px 0 0 0', fontSize: '9px', color: '#aaa' }}>Click to add · click again to remove. Note: There are 1600 icons avalible, not the 60 that you can see.</p>
+                        <p style={{ margin: '6px 0 0 0', fontSize: '9px', color: '#aaa' }}>Click to add · click again to remove. 1600+ Icons avalible!</p>
                     </div>
                 )}
             </div>
