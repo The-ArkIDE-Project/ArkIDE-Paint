@@ -318,7 +318,7 @@ class FontAwesomeSearchPanel extends React.Component {
                                         title={`${icon.name}${isAdded ? ' (click to remove)' : ' (click to add & select)'}`}
                                         onMouseDown={e => { e.stopPropagation(); e.preventDefault(); }}
                                         onClick={e => { e.stopPropagation(); this._toggle(icon); }}
-                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '44px', padding: '4px 2px', borderRadius: '4px', cursor: 'pointer', border: `1.5px solid ${isAdded ? '#4c97ff' : 'transparent'}`, background: isAdded ? '#e8f0ff' : 'transparent' }}
+                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '44px', padding: '4px 2px', borderRadius: '4px', cursor: 'pointer', border: `1.5px solid ${isAdded ? '#794cff' : 'transparent'}`, background: isAdded ? '#e8f0ff' : 'transparent' }}
                                         onMouseEnter={e => { if (!isAdded) e.currentTarget.style.background = '#f0f0f0'; }}
                                         onMouseLeave={e => { if (!isAdded) e.currentTarget.style.background = isAdded ? '#e8f0ff' : 'transparent'; }}
                                     >
@@ -339,7 +339,6 @@ class FontAwesomeSearchPanel extends React.Component {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 const LiveInput = LiveInputHOC(Input);
 const ModeToolsComponent = props => {
