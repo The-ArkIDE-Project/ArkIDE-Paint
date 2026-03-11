@@ -146,7 +146,6 @@ const searchFACache = (query, data, limit = 60) => {
     }));
 };
 
-// ─── Font Awesome Search Panel Component ─────────────────────────────────────
 
 class FontAwesomeSearchPanel extends React.Component {
     constructor (props) {
@@ -194,9 +193,12 @@ class FontAwesomeSearchPanel extends React.Component {
         } catch (e) { /* ignore */ }
     }
 
+    _getInitialVisibleCount (results) {
+        return results.length <= 100 ? results.length : 60;
+    }
+
     async _persistIcons (addedIds) {
         try {
-            // save the full icon data for each added id so we can restore it
             const allShapes = sussyToolShapes();
             const toSave = allShapes
                 .filter(s => s.isFontAwesome && addedIds.has(s.id))
@@ -209,22 +211,28 @@ class FontAwesomeSearchPanel extends React.Component {
     _handleQueryChange (e) {
         const query = e.target.value;
         if (_faIconCache) {
-            this.setState({ query, results: searchFACache(query, _faIconCache, 2141), visibleCount: 60 });
+            const results = searchFACache(query, _faIconCache, 2141);
+            this.setState({ query, results, visibleCount: this._getInitialVisibleCount(results) });
         } else {
-            this.setState({ query, visibleCount: 60 }); 
+            this.setState({ query });
             fetchFAIcons().then(data => {
                 if (data) {
-                    this.setState(s => ({ results: searchFACache(s.query, data, 2141) }));
+                    const results = searchFACache(query, data, 2141);
+                    this.setState({ results, visibleCount: this._getInitialVisibleCount(results) });
                 }
             });
         }
     }
     _handleSearch () {
         if (_faIconCache) {
-            this.setState({ results: searchFACache(this.state.query, _faIconCache, 2141), visibleCount: 60 });  
+            const results = searchFACache(this.state.query, _faIconCache, 2141);
+            this.setState({ results, visibleCount: this._getInitialVisibleCount(results) });
         } else {
             fetchFAIcons().then(data => {
-                if (data) this.setState({ results: searchFACache(this.state.query, data, 2141), visibleCount: 60 });  
+                if (data) {
+                    const results = searchFACache(this.state.query, data, 2141);
+                    this.setState({ results, visibleCount: this._getInitialVisibleCount(results) });
+                }
             });
         }
     }
@@ -260,9 +268,8 @@ class FontAwesomeSearchPanel extends React.Component {
                     onClick={e => {
                         e.stopPropagation();
                         this.setState(s => {
-                            const collapsed = !s.collapsed;
-                            try { localStorage.setItem('fa-panel-collapsed', JSON.stringify(collapsed)); } catch (_) {}
-                            return { collapsed };
+                            const results = searchFACache(query, _faIconCache, 2141);
+                            return { query, results, visibleCount: this._getInitialVisibleCount(results) };
                         });
                     }}
                 >
