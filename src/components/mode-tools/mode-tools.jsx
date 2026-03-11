@@ -245,7 +245,7 @@ class FontAwesomeSearchPanel extends React.Component {
         this._persistIcons(next);
     }
     render () {
-        const { query, results, loading, addedIds } = this.state;
+        const { query, results, loading, addedIds, visibleCount } = this.state;
         const collapsed = this.state.collapsed;
         const visibleResults = results.slice(0, visibleCount); 
         return (
