@@ -15,10 +15,10 @@ class SussyTool extends paper.Tool {
         return 2;
     }
     /**
-     * @param {function} setSelectedItems Callback to set the set of selected items in the Redux state
-     * @param {function} clearSelectedItems Callback to clear the set of selected items in the Redux state
-     * @param {function} setCursor Callback to set the visible mouse cursor
-     * @param {!function} onUpdateImage A callback to call when the image visibly changes
+     * @param {function} setSelectedItems 
+     * @param {function} clearSelectedItems 
+     * @param {function} setCursor 
+     * @param {!function} onUpdateImage 
      */
     constructor(setSelectedItems, clearSelectedItems, setCursor, onUpdateImage) {
         super();
@@ -34,8 +34,6 @@ class SussyTool extends paper.Tool {
         );
         const nudgeTool = new NudgeTool(Modes.SUSSY, this.boundingBoxTool, onUpdateImage);
 
-        // We have to set these functions instead of just declaring them because
-        // paper.js tools hook up the listeners in the setter functions.
         this.onMouseDown = this.handleMouseDown;
         this.onMouseMove = this.handleMouseMove;
         this.onMouseDrag = this.handleMouseDrag;
@@ -59,13 +57,12 @@ class SussyTool extends paper.Tool {
             guide: false,
             match: hitResult =>
                 (hitResult.item.data && (hitResult.item.data.isScaleHandle || hitResult.item.data.isRotHandle)) ||
-                hitResult.item.selected, // Allow hits on bounding box and selected only
+                hitResult.item.selected, 
             tolerance: SussyTool.TOLERANCE / paper.view.zoom
         };
     }
     /**
-     * Should be called if the selection changes to update the bounds of the bounding box.
-     * @param {Array<paper.Item>} selectedItems Array of selected items.
+     * @param {Array<paper.Item>} selectedItems 
      */
     onSelectionChanged(selectedItems) {
         this.boundingBoxTool.onSelectionChanged(selectedItems);
@@ -103,9 +100,6 @@ class SussyTool extends paper.Tool {
         const shapeObj = allShapes.find(s => s.id === this.shape) || allShapes[0];
         this.sussy = new paper.CompoundPath(shapeObj.path);
 
-        // Normalize the path to a unit square first so bounds assignment
-        // works correctly regardless of the original coordinate space
-        // (built-in shapes use small coords; FA icons use 0 0 512 512 etc.)
         const currentBounds = this.sussy.bounds;
         if (currentBounds.width > 0 && currentBounds.height > 0) {
             this.sussy.scale(

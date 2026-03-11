@@ -89,7 +89,7 @@ const fetchFAIcons = () => {
         .catch(() => { _faFetchPromise = null; return null; });
     return _faFetchPromise;
 };
-const searchFACache = (query, data, limit = 40) => {
+const searchFACache = (query, data, limit = 60) => {
     if (!data) return [];
     const q = query.toLowerCase().trim();
     const scored = [];
@@ -331,7 +331,7 @@ class FontAwesomeSearchPanel extends React.Component {
                                 );
                             })}
                         </div>
-                        <p style={{ margin: '6px 0 0 0', fontSize: '9px', color: '#aaa' }}>Click to add · click again to remove</p>
+                        <p style={{ margin: '6px 0 0 0', fontSize: '9px', color: '#aaa' }}>Click to add · click again to remove. Note: There are 1600 icons avalible, not the 60 that you can see.</p>
                     </div>
                 )}
             </div>
