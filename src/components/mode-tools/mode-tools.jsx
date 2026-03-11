@@ -165,7 +165,7 @@ class FontAwesomeSearchPanel extends React.Component {
     }
     componentDidMount () {
         fetchFAIcons().then(data => {
-            this.setState({ loading: false, results: searchFACache('', data, 40) });
+            this.setState({ loading: false, results: searchFACache('', data, 1200) });
             this._loadPersistedState(data);
         });
     }
@@ -208,23 +208,23 @@ class FontAwesomeSearchPanel extends React.Component {
     _handleQueryChange (e) {
         const query = e.target.value;
         if (_faIconCache) {
-            this.setState({ query, results: searchFACache(query, _faIconCache, 40) });
+            this.setState({ query, results: searchFACache(query, _faIconCache, 1200) });
         } else {
             this.setState({ query });
             // cache not ready yet - kick off fetch and update when done
             fetchFAIcons().then(data => {
                 if (data) {
-                    this.setState(s => ({ results: searchFACache(s.query, data, 40) }));
+                    this.setState(s => ({ results: searchFACache(s.query, data, 1200) }));
                 }
             });
         }
     }
     _handleSearch () {
         if (_faIconCache) {
-            this.setState({ results: searchFACache(this.state.query, _faIconCache, 40) });
+            this.setState({ results: searchFACache(this.state.query, _faIconCache, 1200) });
         } else {
             fetchFAIcons().then(data => {
-                if (data) this.setState({ results: searchFACache(this.state.query, data, 40) });
+                if (data) this.setState({ results: searchFACache(this.state.query, data, 1200) });
             });
         }
     }
