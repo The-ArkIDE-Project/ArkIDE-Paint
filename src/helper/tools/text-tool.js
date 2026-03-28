@@ -357,13 +357,17 @@ class TextTool extends paper.Tool {
     beginTextEdit (textBox) {
         this.textBox = textBox;
         this.mode = TextTool.TEXT_EDIT_MODE;
-        this.setTextEditTarget(this.textBox.id);
-        if (this.font !== this.textBox.font) {
-            this.changeFont(this.textBox.font);
-        }
-        if (this.alignment !== this.textBox.justification) {
-            this.changeAlignment(this.textBox.justification);
-        }
+
+        setTimeout(() => {
+            this.setTextEditTarget(this.textBox.id);
+            if (this.font !== this.textBox.font) {
+                this.changeFont(this.textBox.font);
+            }
+            if (this.alignment !== this.textBox.justification) {
+                this.changeAlignment(this.textBox.justification);
+            }
+        }, 0);
+
         this.element.style.fontSize = `${this.textBox.fontSize}px`;
 
         this.element.style.lineHeight = `${this.textBox.leading}px`;
@@ -398,7 +402,7 @@ class TextTool extends paper.Tool {
         if (this.guide) {
             this.guide.remove();
             this.guide = null;
-            this.setTextEditTarget();
+            setTimeout(() => this.setTextEditTarget(), 0);
         }
         this.element.style.display = 'none';
         if (this.eventListener) {
