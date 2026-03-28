@@ -326,8 +326,10 @@ class TextTool extends paper.Tool {
         if (this.guide) this.guide.remove();
         this.guide = hoverBounds(this.textBox, TextTool.TEXT_PADDING);
         this.guide.dashArray = [4, 4];
-        this.element.style.width = `${Math.ceil(this.textBox.internalBounds.width)}px`;
+        this.element.style.width = `${Math.ceil(this.textBox.internalBounds.width) + TextTool.TEXT_PADDING * 2}px`;
         this.element.style.height = `${Math.ceil(this.textBox.internalBounds.height)}px`;
+        this.element.style.whiteSpace = 'nowrap';
+        this.element.style.overflow = 'hidden';
         this.element.style.textAlign = 'left';
 
         if (this.alignment === 'right') {
