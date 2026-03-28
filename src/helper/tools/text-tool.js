@@ -61,6 +61,7 @@ class TextTool extends paper.Tool {
         this.onUpdateImage = onUpdateImage;
         this.setTextEditTarget = setTextEditTarget;
         this.changeFont = changeFont;
+        this.alignment = 'left';
         this.changeAlignment = changeAlignment;
         const paintMode = isBitmap ? Modes.BIT_TEXT : Modes.TEXT;
         this.boundingBoxTool = new BoundingBoxTool(
@@ -366,6 +367,10 @@ class TextTool extends paper.Tool {
             if (this.alignment !== this.textBox.justification) {
                 this.changeAlignment(this.textBox.justification);
             }
+            const resolvedAlignment = this.textBox.justification || this.alignment || 'left';
+            this.textBox.justification = resolvedAlignment;
+            this.alignment = resolvedAlignment;
+            this.resizeGuide(); // only call once, here, after alignment is resolved
         }, 0);
 
         this.element.style.fontSize = `${this.textBox.fontSize}px`;
@@ -379,12 +384,9 @@ class TextTool extends paper.Tool {
         this.element.value = textBox.content ? textBox.content : '';
         this.calculateMatrix(paper.view.matrix);
 
-        this.textBox.justification = this.alignment;
-
         this.element.focus({preventScroll: true});
         this.eventListener = this.handleTextInput.bind(this);
         this.element.addEventListener('input', this.eventListener);
-        this.resizeGuide();
     }
     endTextEdit () {
         if (this.mode !== TextTool.TEXT_EDIT_MODE) {
