@@ -176,18 +176,21 @@ class TextTool extends paper.Tool {
         const textBoxMtx = this.textBox.matrix;
         const calculated = new paper.Matrix();
 
-        // The transform origin in paper is x at justification side, y at the baseline of the text.
-        // The offset from (0, 0) to the upper left corner is recorded by internalBounds
-        // (so this.textBox.internalBounds.y is negative).
-        // Move the transform origin down to the text baseline to match paper
-        this.element.style.transformOrigin = `${-this.textBox.internalBounds.x}px ${-this.textBox.internalBounds.y}px`;
+        const originX = -this.textBox.internalBounds.x;
+        const originY = -this.textBox.internalBounds.y;
 
-        // Start by translating the element up so that its (0, 0) is now at the text baseline, like in paper
+        // Round to nearest pixel to prevent subpixel misalignment
+        this.element.style.transformOrigin = 
+            `${Math.round(originX)}px ${Math.round(originY)}px`;
+
         calculated.translate(this.textBox.internalBounds.x, this.textBox.internalBounds.y);
         calculated.append(viewMtx);
         calculated.append(textBoxMtx);
-        this.element.style.transform = `matrix(${calculated.a}, ${calculated.b}, ${calculated.c}, ${calculated.d},
-             ${calculated.tx}, ${calculated.ty})`;
+
+        // Round tx/ty to prevent subpixel translation drift
+        this.element.style.transform = 
+            `matrix(${calculated.a}, ${calculated.b}, ${calculated.c}, ${calculated.d},
+            ${Math.round(calculated.tx)}, ${Math.round(calculated.ty)})`;
     }
     setColorState (colorState) {
         this.colorState = colorState;
@@ -322,21 +325,19 @@ class TextTool extends paper.Tool {
         if (this.guide) this.guide.remove();
         this.guide = hoverBounds(this.textBox, TextTool.TEXT_PADDING);
         this.guide.dashArray = [4, 4];
-        // Prevent line from wrapping
-        this.element.style.width = `${this.textBox.internalBounds.width + 1}px`;
-        this.element.style.height = `${this.textBox.internalBounds.height}px`;
-        this.element.style.textAlign = "left";
+        this.element.style.width = `${Math.ceil(this.textBox.internalBounds.width)}px`;
+        this.element.style.height = `${Math.ceil(this.textBox.internalBounds.height)}px`;
+        this.element.style.textAlign = 'left';
 
-        // The transform origin needs to be updated in RTL because this.textBox.internalBounds.x
-        // changes as you type
-        if (this.alignment === "right") {
-            this.element.style.textAlign = "right";
+        if (this.alignment === 'right') {
+            this.element.style.textAlign = 'right';
             this.element.style.transformOrigin =
-                `${-this.textBox.internalBounds.x}px ${-this.textBox.internalBounds.y}px`;
+                `${Math.round(-this.textBox.internalBounds.x)}px ${Math.round(-this.textBox.internalBounds.y)}px`;
         }
-        if (this.alignment === "center") {  
-            this.element.style.textAlign = "center";
-            this.element.style.transformOrigin = `center ${-this.textBox.internalBounds.y}px`;
+        if (this.alignment === 'center') {
+            this.element.style.textAlign = 'center';
+            this.element.style.transformOrigin = 
+                `center ${Math.round(-this.textBox.internalBounds.y)}px`;
         }
     }
     beginSelect () {
@@ -364,7 +365,8 @@ class TextTool extends paper.Tool {
             this.changeAlignment(this.textBox.justification);
         }
         this.element.style.fontSize = `${this.textBox.fontSize}px`;
-        this.element.style.lineHeight = this.textBox.leading / this.textBox.fontSize;
+
+        this.element.style.lineHeight = `${this.textBox.leading}px`;
 
         const fillColor = getTextColor(textBox);
         this.element.style.color = fillColor ? fillColor.toCSS() : '';
